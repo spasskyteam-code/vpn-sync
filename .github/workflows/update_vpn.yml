@@ -10,6 +10,15 @@ jobs:
     steps:
       - name: Get and filter data
         run: |
+          # 1. Качаем
           curl -L "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/WHITE-CIDR-RU-all.txt" > all_configs.txt
+          
+          # 2. Фильтруем (убираем Россию)
           grep -vEi "Russia|RU" all_configs.txt > my_configs.txt
-          curl -X PATCH -H "Authorization: token ${{ secrets.GIST_TOKEN }}" -d "{\"files\":{\"auto.txt\":{\"content\":\"$(cat my_configs.txt | sed 's/"/\\"/g' | awk '{printf "%s\\n", $0}' | tr -d '\r')\"}}}" https://api.github.com/gists/fc818fe3688ec82c82116d37bcc7ee26
+          
+          # 3. Загружаем в твой НОВЫЙ Gist
+          CONF_CONTENT=$(cat my_configs.txt | sed 's/"/\\"/g' | awk '{printf "%s\\n", $0}' | tr -d '\r')
+          curl -X PATCH -H "Authorization: token ${{ secrets.GIST_TOKEN }}" \
+               -H "Content-Type: application/json" \
+               -d "{\"files\":{\"auto.txt\":{\"content\":\"$CONF_CONTENT\"}}}" \
+               https://api.github.com/gists/633322f43c3751c0c8bc983d8f6f12e0
