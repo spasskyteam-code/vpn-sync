@@ -1,0 +1,22 @@
+name: Update VPN Config
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get and filter data
+        run: |
+          # 1. Качаем оригинал автора
+          curl -L "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/WHITE-CIDR-RU-all.txt" > all_configs.txt
+          
+          # 2. Вырезаем Россию
+          grep -vEi "Russia|RU" all_configs.txt > my_configs.txt
+          
+          # 3. Обновляем твой Gist (замени только ID в самом конце ссылки!)
+          curl -X PATCH -H "Authorization: token ${{ secrets.GIST_TOKEN }}" \
+          -d "{\"files\":{\"auto.txt\":{\"content\":\"$(cat my_configs.txt | sed 's/"/\\"/g' | awk '{printf "%s\\n", $0}' | tr -d '\r')\"}}}" \
+          https://api.github.com/gists/fc818fe3688ec82c82116d37bcc7ee26
