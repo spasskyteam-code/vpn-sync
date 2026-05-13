@@ -1,13 +1,16 @@
 name: Update VPN Config
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '0 */6 * * *'
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Run
+      - name: Run filter
         run: |
           curl -L "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/WHITE-CIDR-RU-all.txt" > all.txt
-          grep -vEi "Russia|RU" all.txt > my.txt
+          grep -vEi "Russia|RU|Anycast|YA|Yandex|🇷🇺" all.txt > my.txt
           jq -Rs '{files: {"auto.txt": {content: .}}}' my.txt > p.json
           curl -X PATCH -H "Authorization: token ${{ secrets.GIST_TOKEN }}" -H "Content-Type: application/json" -d @p.json https://api.github.com/gists/633322f43c3751c0c8bc983d8f6f12e0
