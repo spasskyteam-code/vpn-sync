@@ -1,4 +1,4 @@
- name: Update VPN Config
+name: Update VPN Config
 on:
   workflow_dispatch:
 jobs:
