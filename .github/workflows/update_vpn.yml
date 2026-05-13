@@ -10,7 +10,19 @@ jobs:
     steps:
       - name: Run filter
         run: |
+          # Скачиваем базу
           curl -L "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/WHITE-CIDR-RU-all.txt" > all.txt
-          grep -vEi "Russia|RU|Anycast|YA|Yandex|🇷🇺" all.txt > my.txt
+          
+          # Жесткая фильтрация: убираем всё, что связано с РФ и Anycast
+          # Мы добавили "Россия" кириллицей и спецкоды на случай, если обычный grep не видит эмодзи
+          grep -vEi "Russia|RU|Anycast|YA|Yandex|Россия|RU-all|🇷🇺" all.txt > my.txt
+          
+          # Считаем, сколько осталось для проверки
+          COUNT=$(wc -l < my.txt)
+          sed -i "1i # Количество после чистки: $COUNT" my.txt
+          
+          # Пакуем в JSON для Gist
           jq -Rs '{files: {"auto.txt": {content: .}}}' my.txt > p.json
+          
+          # Отправляем в твой Gist
           curl -X PATCH -H "Authorization: token ${{ secrets.GIST_TOKEN }}" -H "Content-Type: application/json" -d @p.json https://api.github.com/gists/633322f43c3751c0c8bc983d8f6f12e0
