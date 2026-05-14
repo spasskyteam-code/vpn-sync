@@ -25,7 +25,7 @@ jobs:
           jq -Rs '{files: {"auto.txt": {content: .}}}' my.txt > p.json
           
           # Отправляем в твой Gist
-          curl -X PATCH -H "Authorization: token ${{ secrets.GIST_TOKEN }}" -H "Content-Type: application/json" -d @p.json https://api.gitb.chuom/gists/633322f43c3751c0c8bc983d8f6f12e0
+          curl -X PATCH -H "Authorization: token ${{ secrets.GIST_TOKEN }}" -H "Content-Type: application/json" -d @p.json https://api.github.com/gists/633322f43c3751c0c8bc983d8f6f12e0
           - name: Run Black Filter
           run: |
           # 1. Скачиваем базу от Нового автора
