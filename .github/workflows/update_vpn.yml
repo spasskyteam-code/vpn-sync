@@ -15,7 +15,7 @@ jobs:
           
           # Жесткая фильтрация: убираем всё, что связано с РФ и Anycast
           # Мы добавили "Россия" кириллицей и спецкоды на случай, если обычный grep не видит эмодзи
-          grep -vEi "Russia|RU|Anycast|YA|Yandex|Россия|RU-all|🇷🇺" all.txt > my.txt
+          grep -vEi "Russia|RU|Anycast|Россия|RU-all|🇷🇺" all.txt > my.txt
           
           # Считаем, сколько осталось для проверки
           COUNT=$(wc -l < my.txt)
