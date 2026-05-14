@@ -26,8 +26,7 @@ jobs:
           
           # Отправляем в твой Gist
           curl -X PATCH -H "Authorization: token ${{ secrets.GIST_TOKEN }}" -H "Content-Type: application/json" -d @p.json https://api.github.com/gists/633322f43c3751c0c8bc983d8f6f12e0
-          - name: Run Black Filter
-          run: |
+         
           # 1. Скачиваем базу от Нового автора
           curl -L "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/BLACK_SS+All_RUS.txt" > black_all.txt
 
