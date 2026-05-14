@@ -13,9 +13,9 @@ jobs:
           # Скачиваем базу
           curl -L "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/WHITE-CIDR-RU-all.txt" > all.txt
           
-          # Жесткая фильтрация: убираем всё, что связано с РФ и Anycast
-          # Мы добавили "Россия" кириллицей и спецкоды на случай, если обычный grep не видит эмодзи
-          grep -vEi "Russia|RU|Anycast|Россия|RU-all|🇷🇺" all.txt > my.txt
+          # 2. Удаляем только два элемента: Russia и Anycast
+          # Больше ничего не фильтруем
+          grep -vEi "Russia|Anycast" all.txt > my.txt
           
           # Считаем, сколько осталось для проверки
           COUNT=$(wc -l < my.txt)
