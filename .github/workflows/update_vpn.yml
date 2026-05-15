@@ -10,30 +10,27 @@ jobs:
     steps:
       - name: Run filter
         run: |
-          # --- ГРУППА 1: auto.txt (4 подписки) ---
+          # --- ГРУППА 1: auto.txt (Собираем 4 подписки) ---
           curl -L "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/WHITE-CIDR-RU-all.txt" > all.txt
           curl -L "https://raw.githubusercontent.com/zieng2/wl/main/vless_universal.txt" >> all.txt
           curl -L "https://codeberg.org/zieng2/wl/raw/branch/main/vless_universal.txt" >> all.txt
           curl -L "https://gitlab.com/zieng2/wl/raw/main/vless_universal.txt" >> all.txt
 
-          # Чистим по названиям (после #)
           grep -vE "#.*(Russia|Anycast)" all.txt > my.txt
-          
           COUNT=$(wc -l < my.txt)
           sed -i "1i # Обновлено: $(date) | Конфигов: $COUNT" my.txt
           jq -Rs '{files: {"auto.txt": {content: .}}}' my.txt > p.json
           
-          # ОТПРАВКА В GIST (ID проверен: 633322f43c3751c0c8bc983df6f12e0)
+          # Отправка в Gist "auto.txt" (ID взят с твоего фото)
           curl -X PATCH -H "Authorization: token ${{ secrets.GIST_TOKEN }}" -H "Content-Type: application/json" -d @p.json https://api.github.com/gists/633322f43c3751c0c8bc983df6f12e0
 
           # --- ГРУППА 2: black.txt (5-я подписка) ---
           curl -L "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/BLACK_SS+All_RUS.txt" > black_all.txt
           
           grep -vE "#.*(Russia|Anycast)" black_all.txt > black_my.txt
-          
           COUNT_B=$(wc -l < black_my.txt)
           sed -i "1i # Обновлено: $(date) | Конфигов: $COUNT_B" black_my.txt
           jq -Rs '{files: {"black.txt": {content: .}}}' black_my.txt > black.json
           
-          # ОТПРАВКА (используем тот же Gist, но файл другой внутри)
-          curl -X PATCH -H "Authorization: token ${{ secrets.GIST_TOKEN }}" -H "Content-Type: application/json" -d @black.json https://api.github.com/gists/633322f43c3751c0c8bc983df6f12e0
+          # Отправка в Gist "black.txt" (ID взят с твоего фото)
+          curl -X PATCH -H "Authorization: token ${{ secrets.GIST_TOKEN }}" -H "Content-Type: application/json" -d @black.json https://api.github.com/gists/16f0653f3e6e89796e9565f492be8055
