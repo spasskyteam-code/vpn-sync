@@ -10,35 +10,33 @@ jobs:
     steps:
       - name: Run filter
         run: |
-          # Скачиваем базу
+          # --- ГРУППА 1: Собираем 4 подписки в auto.txt ---
+          # 1. Первая ссылка (создаем файл)
           curl -L "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/WHITE-CIDR-RU-all.txt" > all.txt
           
-          # 2. Удаляем только два элемента: Russia и Anycast
-          # Больше ничего не фильтруем
-          grep -vEi "Russia|Anycast" all.txt > my.txt
+          # 2. Добавляем еще 3 подписки в этот же файл (через >>)
+          curl -L "https://raw.githubusercontent.com/zieng2/wl/main/vless_universal.txt" >> all.txt
+          curl -L "https://codeberg.org/zieng2/wl/raw/branch/main/vless_universal.txt" >> all.txt
+          curl -L "https://gitlab.com/zieng2/wl/raw/main/vless_universal.txt" >> all.txt
+
+          # 3. Чистим всю кучу от Russia и Anycast (фильтр только по названиям)
+          grep -vE "#.*(Russia|Anycast)" all.txt > my.txt
           
-          # Считаем, сколько осталось для проверки
+          # 4. Считаем итог и отправляем в Gist (файл auto.txt)
           COUNT=$(wc -l < my.txt)
-          sed -i "1i # Количество после чистки: $COUNT" my.txt
-          
-          # Пакуем в JSON для Gist
+          sed -i "1i # Обновлено: $(date) | Собрано из 4 подписок: $COUNT" my.txt
           jq -Rs '{files: {"auto.txt": {content: .}}}' my.txt > p.json
-          
-          # Отправляем в твой Gist
-          curl -X PATCH -H "Authorization: token ${{ secrets.GIST_TOKEN }}" -H "Content-Type: application/json" -d @p.json https://api.github.com/gists/633322f43c3751c0c8bc983d8f6f12e0
-         
-          # 1. Скачиваем базу от Нового автора
+          curl -X PATCH -H "Authorization: token ${{ secrets.GIST_TOKEN }}" -H "Content-Type: application/json" -d @p.json https://api.github.com/gists/633322f43c3751c0c8bc983df6f12e0
+
+          # --- ГРУППА 2: Пятая подписка в black.txt ---
+          # 1. Скачиваем отдельную базу
           curl -L "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/BLACK_SS+All_RUS.txt" > black_all.txt
-
-          # 2. Удаляем Россию и Anycast
-          grep -vEi "Russia|Anycast" black_all.txt > black_my.txt
-
-          # 3. Считаем итог и добавляем заголовок
-          COUNT=$(wc -l < black_my.txt)
-          sed -i "1i # Чистые конфиги (без RU/Anycast): $COUNT" black_my.txt
-
-          # 4. Пакуем для твоего нового Gist (файл black.txt)
+          
+          # 2. Чистим её
+          grep -vE "#.*(Russia|Anycast)" black_all.txt > black_my.txt
+          
+          # 3. Считаем итог и отправляем в Gist (файл black.txt)
+          COUNT_B=$(wc -l < black_my.txt)
+          sed -i "1i # Обновлено: $(date) | Из пятой подписки: $COUNT_B" black_my.txt
           jq -Rs '{files: {"black.txt": {content: .}}}' black_my.txt > black.json
-
-          # 5. Отправляєм в Gist через созданный нами секрет
-          curl -X PATCH -H "Authorization: token ${{ secrets.GIST_TOKEN }}" -H "Content-Type: application/json" -d @black.json https://api.github.com/gists/${{ secrets.GIST_ID_BLACK }}
+          curl -X PATCH -H "Authorization: token ${{ secrets.GIST_TOKEN }}" -H "Content-Type: application/json" -d @black.json https://api.github.com/gists/633322f43c3751c0c8bc983df6f12e0
