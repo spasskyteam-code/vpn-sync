@@ -10,26 +10,29 @@ jobs:
     steps:
       - name: Run filter
         run: |
-          # 1. Готовим auto.txt
+          # --- ШАГ 1: Обновляем auto.txt (4 подписки) ---
           curl -L "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/WHITE-CIDR-RU-all.txt" > all.txt
           curl -L "https://raw.githubusercontent.com/zieng2/wl/main/vless_universal.txt" >> all.txt
           curl -L "https://codeberg.org/zieng2/wl/raw/branch/main/vless_universal.txt" >> all.txt
           curl -L "https://gitlab.com/zieng2/wl/raw/main/vless_universal.txt" >> all.txt
+
+          # Фильтруем (только названия)
           grep -vE "#.*(Russia|Anycast)" all.txt > my.txt
-          # Убираем лишние символы, которые могут сломать JSON
-          content_auto=$(cat my.txt | jq -aRs .)
-
-          # 2. Готовим black.txt
-          curl -L "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/BLACK_SS+All_RUS.txt" > black_all.txt
-          grep -vE "#.*(Russia|Anycast)" black_all.txt > black_my.txt
-          content_black=$(cat black_my.txt | jq -aRs .)
-
-          # 3. Отправляем ОБА файла одним махом в основной Gist
-          # Мы создаем один большой JSON с обоими файлами
-          echo "{\"files\": {\"auto.txt\": {\"content\": $content_auto}, \"black.txt\": {\"content\": $content_black}}}" > final.json
+          COUNT_A=$(wc -l < my.txt)
+          sed -i "1i # Обновлено: $(date) | Конфигов: $COUNT_A" my.txt
           
-          curl -X PATCH \
-            -H "Authorization: token ${{ secrets.GIST_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            -d @final.json \
-            https://api.github.com/gists/633322f43c3751c0c8bc983df6f12e0
+          # Упаковка и отправка в первый Gist (ID: 633322f43c3751c0c8bc983d8f6f12e0)
+          jq -Rs '{files: {"auto.txt": {content: .}}}' my.txt > p_auto.json
+          curl -X PATCH -H "Authorization: token ${{ secrets.GIST_TOKEN }}" -H "Content-Type: application/json" -d @p_auto.json https://api.github.com/gists/633322f43c3751c0c8bc983d8f6f12e0
+
+          # --- ШАГ 2: Обновляем black.txt (5-я подписка) ---
+          curl -L "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/BLACK_SS+All_RUS.txt" > black_all.txt
+          
+          # Фильтруем
+          grep -vE "#.*(Russia|Anycast)" black_all.txt > black_my.txt
+          COUNT_B=$(wc -l < black_my.txt)
+          sed -i "1i # Обновлено: $(date) | Конфигов: $COUNT_B" black_my.txt
+          
+          # Упаковка и отправка во второй Gist (ID: 3bc9b1c65c9036c02003fa6cfb7c1247)
+          jq -Rs '{files: {"black.txt": {content: .}}}' black_my.txt > p_black.json
+          curl -X PATCH -H "Authorization: token ${{ secrets.GIST_TOKEN }}" -H "Content-Type: application/json" -d @p_black.json https://api.github.com/gists/3bc9b1c65c9036c02003fa6cfb7c1247
