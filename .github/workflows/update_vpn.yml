@@ -17,7 +17,7 @@ jobs:
           curl -L "https://gitlab.com/zieng2/wl/raw/main/vless_universal.txt" >> all.txt
 
           # Вот эта обновленная строка фильтра:
-          grep -vE "#.*(Russia|Anycast|Yandex|CDNvideo|cloud.ru|Delta|e-Style|Selectel|Timeweb|UFOHosting)" all.txt > my.txt
+          grep -vE "#.*(Russia|Anycast|Yandex|CDNvideo|cloud.ru|Delta|e-Style|Selectel|Timeweb|UFO Hosting|UFOHosting)" all.txt > my.txt
           
           COUNT_A=$(wc -l < my.txt)
           sed -i "1i # Обновлено: $(date) | Конфигов: $COUNT_A" my.txt
