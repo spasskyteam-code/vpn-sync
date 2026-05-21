@@ -16,13 +16,14 @@ jobs:
           curl -L "https://codeberg.org/zieng2/wl/raw/branch/main/vless_universal.txt" >> all.txt
           curl -L "https://gitlab.com/zieng2/wl/raw/main/vless_universal.txt" >> all.txt
 
-          # --- ШАГ 2: Фильтруем auto.txt (Тотальная чистка РФ по именам) ---
-          # Ищем флаги, буквы RU/РФ и хостинги строго в названиях серверов (после знака #)
+          # --- ШАГ 2: Фильтруем auto.txt (Надежная чистка РФ) ---
           grep -vE "#.*\s?([🇷🇺RUРФ]|Russia|Anycast|Yandex|CDNvideo|cloud\.ru|Delta|e-Style|Selectel|Timeweb|UFO Hosting|UFOHosting|Beget|EuroByte|Sprinthost|THE\.Hosting)" all.txt > my.txt || true
           
           # Считаем, сколько чистых конфигов получилось
           COUNT_A=$(wc -l < my.txt)
-          sed -i "1i # Обновлено: $(date) | Конфигов: $COUNT_A" my.txt
+          
+          # Задаем красивое имя "БЕЛЫЕ СПИСКИ" для отображения в приложениях
+          sed -i "1i # profile-title: БЕЛЫЕ СПИСКИ | Обновлено: $(date) | Конфигов: $COUNT_A" my.txt
           
           # Отправляем чистый auto.txt в твой Gist
           jq -Rs '{files: {"auto.txt": {content: .}}}' my.txt > p_auto.json
@@ -34,8 +35,10 @@ jobs:
           grep -vE "#.*(Russia|Anycast)" black_all.txt > black_my.txt
           
           COUNT_B=$(wc -l < black_my.txt)
-          sed -i "1i # Обновлено: $(date) | Конфигов: $COUNT_B" black_my.txt
+          
+          # Задаем красивое имя "ЧЕРНЫЕ СПИСКИ" для черного списка
+          sed -i "1i # profile-title: ЧЕРНЫЕ СПИСКИ | Обновлено: $(date) | Конфигов: $COUNT_B" black_my.txt
           
           # Отправляем чистый black.txt в твой Gist
           jq -Rs '{files: {"black.txt": {content: .}}}' black_my.txt > p_black.json
-          curl -X PATCH -H "Authorization: token ${{ secrets.GIST_TOKEN }}" -H "Content-Type: application/json" -d @p_black.json https://api.github.com/gists/3bc9b1c65c9036c02003fa6cfb7c1247
+          curl -X PATCH -H "Authorization: token ${{ secrets.GICOUNTS_B_TOKEN }}" -H "Authorization: token ${{ secrets.GIST_TOKEN }}" -H "Content-Type: application/json" -d @p_black.json https://api.github.com/gists/3bc9b1c65c9036c02003fa6cfb7c1247
