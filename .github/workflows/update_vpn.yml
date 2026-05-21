@@ -10,20 +10,18 @@ jobs:
     steps:
       - name: Run filter
         run: |
-          # --- ШАГ 1: Обновляем auto.txt (Безопасное возвращение серверов) ---
+          # --- ШАГ 1: Возврат к большой базе (~1500+) и точечная чистка ---
           curl -L "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/WHITE-CIDR-RU-all.txt" > all.txt
           curl -L "https://raw.githubusercontent.com/zieng2/wl/main/vless_universal.txt" >> all.txt
           curl -L "https://codeberg.org/zieng2/wl/raw/branch/main/vless_universal.txt" >> all.txt
           curl -L "https://gitlab.com/zieng2/wl/raw/main/vless_universal.txt" >> all.txt
 
-          # 1 этап: Удаляем хитрые UFO/Сбер сервера по их точному адресу
-          grep -v "sbrf-cdn342.ru" all.txt > step1.txt || true
-
-          # 2 этап: Удаляем только по флагам-эмодзи и конкретным именам хостингов (БЕЗ опасных букв RU)
-          grep -vE "#.*\s?([🇷🇺РФ]|Russia|Anycast|Yandex|CDNvideo|cloud\.ru|Delta|e-Style|Selectel|Timeweb|UFO Hosting|UFOHosting|Beget|EuroByte|Sprinthost|THE\.Hosting)" step1.txt > my.txt || true
+          # Удаляем строго 7 серверов по номерам из имен после решетки (#59-#65)
+          # А также чистим явные флаги РФ и хостинги (Beget, Sprinthost и т.д.)
+          grep -vE "#.*\s?([🇷🇺RUРФ]|Russia|Anycast|Yandex|CDNvideo|cloud\.ru|Delta|e-Style|Selectel|Timeweb|UFO Hosting|UFOHosting|Beget|EuroByte|Sprinthost|THE\.Hosting|#(59|60|61|62|63|64|65)\b)" all.txt > my.txt || true
           
           COUNT_A=$(wc -l < my.txt)
-          sed -i "1i # Обновлено: $(date) | Конфигов: $COUNT_A" my.txt
+          sed -i "1i # Обновлено: $(date) | Conf: $COUNT_A" my.txt
           
           jq -Rs '{files: {"auto.txt": {content: .}}}' my.txt > p_auto.json
           curl -X PATCH -H "Authorization: token ${{ secrets.GIST_TOKEN }}" -H "Content-Type: application/json" -d @p_auto.json https://api.github.com/gists/633322f43c3751c0c8bc983d8f6f12e0
@@ -34,6 +32,6 @@ jobs:
           grep -vE "#.*(Russia|Anycast)" black_all.txt > black_my.txt
           
           COUNT_B=$(wc -l < black_my.txt)
-          sed -i "1i # Обновлено: $(date) | Конфигов: $COUNT_B" black_my.txt
+          sed -i "1i # Обновлено: $(date) | Conf: $COUNT_B" black_my.txt
           jq -Rs '{files: {"black.txt": {content: .}}}' black_my.txt > p_black.json
           curl -X PATCH -H "Authorization: token ${{ secrets.GIST_TOKEN }}" -H "Content-Type: application/json" -d @p_black.json https://api.github.com/gists/3bc9b1c65c9036c02003fa6cfb7c1247
