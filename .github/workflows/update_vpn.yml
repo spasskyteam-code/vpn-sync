@@ -10,13 +10,13 @@ jobs:
     steps:
       - name: Run filter
         run: |
-          # --- ШАГ 1: Обновляем auto.txt (С новыми хостингами с фото) ---
+          # --- ШАГ 1: Обновляем auto.txt (Максимальная чистка РФ) ---
           curl -L "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/WHITE-CIDR-RU-all.txt" > all.txt
           curl -L "https://raw.githubusercontent.com/zieng2/wl/main/vless_universal.txt" >> all.txt
           curl -L "https://codeberg.org/zieng2/wl/raw/branch/main/vless_universal.txt" >> all.txt
           curl -L "https://gitlab.com/zieng2/wl/raw/main/vless_universal.txt" >> all.txt
 
-          # Вот эта обновленная строка фильтра:
+          # Новый ультимативный фильтр
           grep -vE "#.*\s?([🇷🇺RUРФ]|Russia|Anycast|Yandex|CDNvideo|cloud\.ru|Delta|e-Style|Selectel|Timeweb|UFO Hosting|UFOHosting|Beget|EuroByte|Sprinthost|THE\.Hosting)" all.txt > my.txt
           
           COUNT_A=$(wc -l < my.txt)
