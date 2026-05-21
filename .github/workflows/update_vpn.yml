@@ -10,17 +10,17 @@ jobs:
     steps:
       - name: Run filter
         run: |
-          # --- ШАГ 1: Обновляем auto.txt (Ювелирный фильтр) ---
+          # --- ШАГ 1: Обновляем auto.txt (Безопасное возвращение серверов) ---
           curl -L "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/WHITE-CIDR-RU-all.txt" > all.txt
           curl -L "https://raw.githubusercontent.com/zieng2/wl/main/vless_universal.txt" >> all.txt
           curl -L "https://codeberg.org/zieng2/wl/raw/branch/main/vless_universal.txt" >> all.txt
           curl -L "https://gitlab.com/zieng2/wl/raw/main/vless_universal.txt" >> all.txt
 
-          # Ювелирная чистка: удаляем только конкретные технические адреса Сбера, не трогая ключи
-          grep -vE "(-def\.sbrf-cdn342\.ru)" all.txt > step1.txt || true
+          # 1 этап: Удаляем хитрые UFO/Сбер сервера по их точному адресу
+          grep -v "sbrf-cdn342.ru" all.txt > step1.txt || true
 
-          # Чистка по флагам и названиям хостингов в самом конце строки (после #)
-          grep -vE "#.*\s?([🇷🇺RUРФ]|Russia|Anycast|Yandex|CDNvideo|cloud\.ru|Delta|e-Style|Selectel|Timeweb|UFO Hosting|UFOHosting|Beget|EuroByte|Sprinthost|THE\.Hosting)" step1.txt > my.txt || true
+          # 2 этап: Удаляем только по флагам-эмодзи и конкретным именам хостингов (БЕЗ опасных букв RU)
+          grep -vE "#.*\s?([🇷🇺РФ]|Russia|Anycast|Yandex|CDNvideo|cloud\.ru|Delta|e-Style|Selectel|Timeweb|UFO Hosting|UFOHosting|Beget|EuroByte|Sprinthost|THE\.Hosting)" step1.txt > my.txt || true
           
           COUNT_A=$(wc -l < my.txt)
           sed -i "1i # Обновлено: $(date) | Конфигов: $COUNT_A" my.txt
