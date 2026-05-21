@@ -10,16 +10,16 @@ jobs:
     steps:
       - name: Run filter
         run: |
-          # --- ШАГ 1: Обновляем auto.txt (Идеальные отступы и чистка) ---
+          # --- ШАГ 1: Обновляем auto.txt (Ювелирный фильтр) ---
           curl -L "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/WHITE-CIDR-RU-all.txt" > all.txt
           curl -L "https://raw.githubusercontent.com/zieng2/wl/main/vless_universal.txt" >> all.txt
           curl -L "https://codeberg.org/zieng2/wl/raw/branch/main/vless_universal.txt" >> all.txt
           curl -L "https://gitlab.com/zieng2/wl/raw/main/vless_universal.txt" >> all.txt
 
-          # 1 этап: Вырезаем хитрые сервера по их реальному адресу Сбера/UFO
-          grep -v "sbrf-cdn342.ru" all.txt > step1.txt || true
+          # Ювелирная чистка: удаляем только конкретные технические адреса Сбера, не трогая ключи
+          grep -vE "(-def\.sbrf-cdn342\.ru)" all.txt > step1.txt || true
 
-          # 2 этап: Вырезаем оставшуюся Россию по флагам и именам хостингов
+          # Чистка по флагам и названиям хостингов в самом конце строки (после #)
           grep -vE "#.*\s?([🇷🇺RUРФ]|Russia|Anycast|Yandex|CDNvideo|cloud\.ru|Delta|e-Style|Selectel|Timeweb|UFO Hosting|UFOHosting|Beget|EuroByte|Sprinthost|THE\.Hosting)" step1.txt > my.txt || true
           
           COUNT_A=$(wc -l < my.txt)
@@ -28,7 +28,7 @@ jobs:
           jq -Rs '{files: {"auto.txt": {content: .}}}' my.txt > p_auto.json
           curl -X PATCH -H "Authorization: token ${{ secrets.GIST_TOKEN }}" -H "Content-Type: application/json" -d @p_auto.json https://api.github.com/gists/633322f43c3751c0c8bc983d8f6f12e0
 
-          # --- ШАГ 2: Обновляем black.txt (Без изменений, как в оригинале) ---
+          # --- ШАГ 2: Обновляем black.txt ---
           curl -L "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/BLACK_SS+All_RUS.txt" > black_all.txt
           
           grep -vE "#.*(Russia|Anycast)" black_all.txt > black_my.txt
