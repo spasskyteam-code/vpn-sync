@@ -19,11 +19,8 @@ jobs:
           # --- ШАГ 2: Фильтруем auto.txt (Белые списки) ---
           grep -vE "#.*\s?([🇷🇺RUРФ]|Russia|Anycast|Yandex|CDNvideo|cloud\.ru|Delta|e-Style|Selectel|Timeweb|UFO Hosting|UFOHosting|Beget|EuroByte|Sprinthost|THE\.Hosting)" all.txt > my.txt || true
           
-          # Считаем количество белых серверов
-          COUNT_A=$(wc -l < my.txt)
-          
-          # Задаем чистое красивое имя без даты
-          sed -i "1i # profile-title: БЕЛЫЕ СПИСКИ | Конфигов: $COUNT_A" my.txt
+          # Задаем строгое чистое название без цифр и слов
+          sed -i "1i # profile-title: БЕЛЫЕ СПИСКИ" my.txt
           
           # Отправляем в твой Gist
           jq -Rs '{files: {"auto.txt": {content: .}}}' my.txt > p_auto.json
@@ -34,11 +31,8 @@ jobs:
           
           grep -vE "#.*(Russia|Anycast)" black_all.txt > black_my.txt
           
-          # Считаем количество черных серверов
-          COUNT_B=$(wc -l < black_my.txt)
-          
-          # Задаем точно такое же чистое имя без даты
-          sed -i "1i # profile-title: ЧЕРНЫЕ СПИСКИ | Конфигов: $COUNT_B" black_my.txt
+          # Задаем строгое чистое название для черного списка
+          sed -i "1i # profile-title: ЧЕРНЫЕ СПИСКИ" black_my.txt
           
           # Отправляем в твой Gist
           jq -Rs '{files: {"black.txt": {content: .}}}' black_my.txt > p_black.json
