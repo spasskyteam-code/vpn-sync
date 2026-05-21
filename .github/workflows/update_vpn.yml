@@ -1,61 +1,41 @@
-name: Update VPN Configs
-
+name: Update VPN Config
 on:
   workflow_dispatch:
   schedule:
     - cron: '0 */6 * * *'
 
 jobs:
-  update:
+  build:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Update and filter configs
-        env:
-          GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
+      - name: Run filter
         run: |
-          set -e
+          # --- ШАГ 1: Скачиваем оригинальные подписки авторов ---
+          curl -L "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/WHITE-CIDR-RU-all.txt" > all.txt
+          curl -L "https://raw.githubusercontent.com/zieng2/wl/main/vless_universal.txt" >> all.txt
+          curl -L "https://codeberg.org/zieng2/wl/raw/branch/main/vless_universal.txt" >> all.txt
+          curl -L "https://gitlab.com/zieng2/wl/raw/main/vless_universal.txt" >> all.txt
 
-          echo "=== Обновление AUTO (White) ==="
+          # --- ШАГ 2: Фильтруем auto.txt (Тотальная чистка РФ по именам) ---
+          # Ищем флаги, буквы RU/РФ и хостинги строго в названиях серверов (после знака #)
+          grep -vE "#.*\s?([🇷🇺RUРФ]|Russia|Anycast|Yandex|CDNvideo|cloud\.ru|Delta|e-Style|Selectel|Timeweb|UFO Hosting|UFOHosting|Beget|EuroByte|Sprinthost|THE\.Hosting)" all.txt > my.txt || true
+          
+          # Считаем, сколько чистых конфигов получилось
+          COUNT_A=$(wc -l < my.txt)
+          sed -i "1i # Обновлено: $(date) | Конфигов: $COUNT_A" my.txt
+          
+          # Отправляем чистый auto.txt в твой Gist
+          jq -Rs '{files: {"auto.txt": {content: .}}}' my.txt > p_auto.json
+          curl -X PATCH -H "Authorization: token ${{ secrets.GIST_TOKEN }}" -H "Content-Type: application/json" -d @p_auto.json https://api.github.com/gists/633322f43c3751c0c8bc983d8f6f12e0
 
-          curl -L -f -s "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/WHITE-CIDR-RU-all.txt" -o white.txt
-          curl -L -f -s "https://raw.githubusercontent.com/zieng2/wl/main/vless_universal.txt" -o v1.txt || true
-          curl -L -f -s "https://codeberg.org/zieng2/wl/raw/branch/main/vless_universal.txt" -o v2.txt || true
-          curl -L -f -s "https://gitlab.com/zieng2/wl/raw/main/vless_universal.txt" -o v3.txt || true
-
-          cat white.txt v*.txt > all.txt 2>/dev/null || cat white.txt > all.txt
-
-          # Фильтрация только по явным российским названиям
-          grep -vE "#.*(🇷🇺|RU🇷🇺|РФ|russia|москва|санкт-петербург|екатеринбург|россия)" all.txt > filtered.txt || true
-
-          COUNT=$(wc -l < filtered.txt)
-          echo "# Обновлено: $(date -u '+%Y-%m-%d %H:%M UTC') | Конфигов: $COUNT" > auto.txt
-          cat filtered.txt >> auto.txt
-
-          echo "AUTO: $COUNT конфигов"
-
-          # Обновление Gist auto.txt
-          jq -Rs --arg content "$(cat auto.txt)" '{files: {"auto.txt": {content: $content}}}' > payload.json
-          curl -X PATCH -H "Authorization: token $GIST_TOKEN" -H "Content-Type: application/json" -d @payload.json \
-            https://api.github.com/gists/633322f43c3751c0c8bc983d8f6f12e0
-
-          echo "=== Обновление BLACK ==="
-
-          curl -L -f -s "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/BLACK_SS+All_RUS.txt" -o black_raw.txt
-
-          grep -vE "#.*(🇷🇺|RU🇷🇺|РФ|russia|москва|санкт-петербург|екатеринбург|россия)" black_raw.txt > black_filtered.txt || true
-
-          COUNT_B=$(wc -l < black_filtered.txt)
-          echo "# Обновлено: $(date -u '+%Y-%m-%d %H:%M UTC') | Конфигов: $COUNT_B" > black.txt
-          cat black_filtered.txt >> black.txt
-
-          echo "BLACK: $COUNT_B конфигов"
-
-          # Обновление Gist black.txt
-          jq -Rs --arg content "$(cat black.txt)" '{files: {"black.txt": {content: $content}}}' > payload_b.json
-          curl -X PATCH -H "Authorization: token $GIST_TOKEN" -H "Content-Type: application/json" -d @payload_b.json \
-            https://api.github.com/gists/3bc9b1c65c9036c02003fa6cfb7c1247
-
-          echo "✅ Всё обновлено успешно"
+          # --- ШАГ 3: Фильтруем black.txt (Черный список) ---
+          curl -L "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/BLACK_SS+All_RUS.txt" > black_all.txt
+          
+          grep -vE "#.*(Russia|Anycast)" black_all.txt > black_my.txt
+          
+          COUNT_B=$(wc -l < black_my.txt)
+          sed -i "1i # Обновлено: $(date) | Конфигов: $COUNT_B" black_my.txt
+          
+          # Отправляем чистый black.txt в твой Gist
+          jq -Rs '{files: {"black.txt": {content: .}}}' black_my.txt > p_black.json
+          curl -X PATCH -H "Authorization: token ${{ secrets.GIST_TOKEN }}" -H "Content-Type: application/json" -d @p_black.json https://api.github.com/gists/3bc9b1c65c9036c02003fa6cfb7c1247
