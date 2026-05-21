@@ -19,7 +19,7 @@ jobs:
           # --- ШАГ 2: Фильтруем auto.txt (Белые списки) ---
           grep -vE "#.*\s?([🇷🇺RUРФ]|Russia|Anycast|Yandex|CDNvideo|cloud\.ru|Delta|e-Style|Selectel|Timeweb|UFO Hosting|UFOHosting|Beget|EuroByte|Sprinthost|THE\.Hosting)" all.txt > my.txt || true
           
-          # Задаем строгое чистое название без цифр и слов
+          # Задаем строгое чистое название для белого списка
           sed -i "1i # profile-title: БЕЛЫЕ СПИСКИ" my.txt
           
           # Отправляем в твой Gist
