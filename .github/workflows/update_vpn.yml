@@ -16,8 +16,8 @@ jobs:
           curl -L "https://codeberg.org/zieng2/wl/raw/branch/main/vless_universal.txt" >> all.txt
           curl -L "https://gitlab.com/zieng2/wl/raw/main/vless_universal.txt" >> all.txt
 
-          # Фильтруем (только названия + добавили Beget и Cloudflare)
-          grep -vE "#.*(Russia|Anycast|Yandex|CDNvideo|cloud.ru|Delta|e-Style|Selectel|Timeweb|UFO Hosting|UFOHosting|Beget|Cloudflare)" all.txt > my.txt
+          # Исправленный фильтр: экранировали пробелы в UFO Hosting и cloud.ru
+          grep -vE "#.*(Russia|Anycast|Yandex|CDNvideo|cloud\.ru|Delta|e-Style|Selectel|Timeweb|UFO\s?Hosting|Beget|Cloudflare)" all.txt > my.txt
           COUNT_A=$(wc -l < my.txt)
           sed -i "1i # Обновлено: $(date) | Конфигов: $COUNT_A" my.txt
           
@@ -28,7 +28,7 @@ jobs:
           # --- ШАГ 2: Обновляем black.txt (5-я подписка) ---
           curl -L "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/BLACK_SS+All_RUS.txt" > black_all.txt
           
-          # Фильтруем
+          # Фильтруем черные списки
           grep -vE "#.*(Russia|Anycast)" black_all.txt > black_my.txt
           COUNT_B=$(wc -l < black_my.txt)
           sed -i "1i # Обновлено: $(date) | Конфигов: $COUNT_B" black_my.txt
