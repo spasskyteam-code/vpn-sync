@@ -10,30 +10,29 @@ jobs:
     steps:
       - name: Run filter
         run: |
-          # --- ШАГ 1: Скачиваем оригинальные подписки авторов ---
+          # --- ШАГ 1: Обновляем auto.txt (4 подписки) ---
           curl -L "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/WHITE-CIDR-RU-all.txt" > all.txt
           curl -L "https://raw.githubusercontent.com/zieng2/wl/main/vless_universal.txt" >> all.txt
           curl -L "https://codeberg.org/zieng2/wl/raw/branch/main/vless_universal.txt" >> all.txt
           curl -L "https://gitlab.com/zieng2/wl/raw/main/vless_universal.txt" >> all.txt
 
-          # --- ШАГ 2: Фильтруем auto.txt (Белые списки) ---
-          grep -vE "#.*\s?([🇷🇺RUРФ]|Russia|Anycast|Yandex|CDNvideo|cloud\.ru|Delta|e-Style|Selectel|Timeweb|UFO Hosting|UFOHosting|Beget|EuroByte|Sprinthost|THE\.Hosting)" all.txt > my.txt || true
+          # Фильтруем (только названия)
+          grep -vE "#.*(Russia|Anycast)" all.txt > my.txt
+          COUNT_A=$(wc -l < my.txt)
+          sed -i "1i # Обновлено: $(date) | Конфигов: $COUNT_A" my.txt
           
-          # Задаем строгое чистое название для белого списка
-          sed -i "1i # profile-title: БЕЛЫЕ СПИСКИ" my.txt
-          
-          # Отправляем в твой Gist
+          # Упаковка и отправка в первый Gist (ID: 633322f43c3751c0c8bc983d8f6f12e0)
           jq -Rs '{files: {"auto.txt": {content: .}}}' my.txt > p_auto.json
           curl -X PATCH -H "Authorization: token ${{ secrets.GIST_TOKEN }}" -H "Content-Type: application/json" -d @p_auto.json https://api.github.com/gists/633322f43c3751c0c8bc983d8f6f12e0
 
-          # --- ШАГ 3: Фильтруем black.txt (Черные списки) ---
+          # --- ШАГ 2: Обновляем black.txt (5-я подписка) ---
           curl -L "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/BLACK_SS+All_RUS.txt" > black_all.txt
           
+          # Фильтруем
           grep -vE "#.*(Russia|Anycast)" black_all.txt > black_my.txt
+          COUNT_B=$(wc -l < black_my.txt)
+          sed -i "1i # Обновлено: $(date) | Конфигов: $COUNT_B" black_my.txt
           
-          # Задаем строгое чистое название для черного списка
-          sed -i "1i # profile-title: ЧЕРНЫЕ СПИСКИ" black_my.txt
-          
-          # Отправляем в твой Gist
+          # Упаковка и отправка во второй Gist (ID: 3bc9b1c65c9036c02003fa6cfb7c1247)
           jq -Rs '{files: {"black.txt": {content: .}}}' black_my.txt > p_black.json
           curl -X PATCH -H "Authorization: token ${{ secrets.GIST_TOKEN }}" -H "Content-Type: application/json" -d @p_black.json https://api.github.com/gists/3bc9b1c65c9036c02003fa6cfb7c1247
