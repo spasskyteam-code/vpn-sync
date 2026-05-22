@@ -27,13 +27,11 @@ jobs:
           jq -Rs '{files: {"auto.txt": {content: .}}}' my.txt > p_auto.json
           curl -X PATCH -H "Authorization: token ${{ secrets.GIST_TOKEN }}" -H "Content-Type: application/json" -d @p_auto.json https://api.github.com/gists/633322f43c3751c0c8bc983d8f6f12e0
 
-          # --- ШАГ 2: Обновляем black.txt (5-я подписка) ---
+          # --- ШАГ 2: Новый аккуратный фильтр для black.txt ---
           curl -L "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/BLACK_SS+All_RUS.txt" > black_all.txt
-          
-          # Фильтруем черные списки (тоже строго в именах после #)
-          grep -viE "#.*(Russia|Anycast)" black_all.txt > black_my.txt
+          grep -vF "%F0%9F%87%B7%F0%9F%87%BA" black_all.txt > black_my.txt
           COUNT_B=$(wc -l < black_my.txt)
-          sed -i "1i # Обновлено: $(date) | Конфигов: $COUNT_B" black_my.txt
+          sed -i "1i # Обновлено: $(date) | Conf: $COUNT_B" black_my.txt
           
           # Упаковка и отправка во второй Gist (ID: 3bc9b1c65c9036c02003fa6cfb7c1247)
           jq -Rs '{files: {"black.txt": {content: .}}}' black_my.txt > p_black.json
