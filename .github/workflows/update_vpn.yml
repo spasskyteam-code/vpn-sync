@@ -16,12 +16,8 @@ jobs:
           curl -L "https://codeberg.org/zieng2/wl/raw/branch/main/vless_universal.txt" >> all.txt
           curl -L "https://gitlab.com/zieng2/wl/raw/main/vless_universal.txt" >> all.txt
 
-          # Умный фильтр после знака #: ловит обычные слова И слова с закодированными пробелами (%20)
-          # Ключ -i игнорирует регистр букв. Зарубежные сервера в полной безопасности!
+          # Фильтруем. Файл на выходе будет содержать ТОЛЬКО чистые сервера
           grep -viE "#.*(Russia|Anycast|Yandex|CDNvideo|cloud\.ru|Delta|e-Style|Selectel|Timeweb|UFO(%20|\s)?Hosting|Beget|Cloudflare|VK|Datahouse|Sprinthost|THE\.Hosting)" all.txt > my.txt
-          
-          COUNT_A=$(wc -l < my.txt)
-          sed -i "1i # Обновлено: $(date) | Конфигов: $COUNT_A" my.txt
           
           # Упаковка и отправка в первый Gist (ID: 633322f43c3751c0c8bc983d8f6f12e0)
           jq -Rs '{files: {"auto.txt": {content: .}}}' my.txt > p_auto.json
@@ -29,9 +25,9 @@ jobs:
 
           # --- ШАГ 2: Новый аккуратный фильтр для black.txt ---
           curl -L "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/BLACK_SS+All_RUS.txt" > black_all.txt
+          
+          # Фильтруем флаг РФ, оставляя структуру файла нетронутой и чистой
           grep -vF "%F0%9F%87%B7%F0%9F%87%BA" black_all.txt > black_my.txt
-          COUNT_B=$(wc -l < black_my.txt)
-          sed -i "1i # Обновлено: $(date) | Conf: $COUNT_B" black_my.txt
           
           # Упаковка и отправка во второй Gist (ID: 3bc9b1c65c9036c02003fa6cfb7c1247)
           jq -Rs '{files: {"black.txt": {content: .}}}' black_my.txt > p_black.json
